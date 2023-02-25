@@ -21,7 +21,12 @@ LOCATION=us-central1
 PROJECT_ID=$(gcloud config list --format 'value(core.project)')
 PROJECT_NUMBER=$(gcloud projects describe "${PROJECT_ID}" --format='value(projectNumber)')
 CLOUD_BUILD_SA_EMAIL="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
-BINAUTHZ_SA_EMAIL="service-${PROJECT_NUMBER}@gcp-sa-binaryauthorization.iam.gserviceaccount.com"
+#BINAUTHZ_SA_EMAIL="service-${PROJECT_NUMBER}@bin.iam.gserviceaccount.com"
+BINAUTHZ_SA_EMAIL="service-binauth@${PROJECT_ID}.iam.gserviceaccount.com"
+
+gcloud iam service-accounts create ${BINAUTHZ_SA_EMAIL} \
+    --description="Binary Auth Service Account" \
+    --display-name="bin_auth_sa"
 
 #Create the following custom IAM role
 gcloud iam roles create cicdblogrole --project=${PROJECT_ID} \
@@ -164,31 +169,50 @@ gcloud functions deploy cd-deploy-notification \
 #NOTE: If you're using a different VPC, ensure you change the --subnetwork config value to match against your VPC subnet
 
 #GKE Cluster for Test environment, uncomment --subnetwork if you want to use a non-default VPC
+#export LOCATION=us-central1
+LOCATION=us-central1
+PROJECT_ID=$(gcloud config list --format 'value(core.project)')
 gcloud container clusters create test \
     --project=$PROJECT_ID \
     --machine-type=n1-standard-2 \
-    --region $LOCATION \
     --num-nodes=1 \
     --binauthz-evaluation-mode=PROJECT_SINGLETON_POLICY_ENFORCE \
     --labels=app=vulnapp-test \
-    --subnetwork=default
+    --subnetwork=default \
+    --no-enable-ip-alias \
+    --zone us-central1-a \
+    --preemptible \
+    --num-nodes=1 \
+    --disk-size=50GB  
+    #  --additional-zones us-central1-b
+    
  
 #GKE Cluster for Staging environment
 gcloud container clusters create staging \
     --project=$PROJECT_ID \
     --machine-type=n1-standard-2 \
-    --region $LOCATION \
     --num-nodes=1 \
     --binauthz-evaluation-mode=PROJECT_SINGLETON_POLICY_ENFORCE \
-    --labels=app=vulnapp-staging \
-    --subnetwork=default
+    --labels=app=vulnapp-test \
+    --subnetwork=default \
+    --no-enable-ip-alias \
+    --zone us-central1-b \
+    --preemptible \
+    --num-nodes=1 \
+    --disk-size=50GB  
+    #  --additional-zones us-central1-b
 
 #GKE Cluster for Production environment
 gcloud container clusters create prod \
     --project=$PROJECT_ID \
     --machine-type=n1-standard-2 \
-    --region $LOCATION \
     --num-nodes=1 \
     --binauthz-evaluation-mode=PROJECT_SINGLETON_POLICY_ENFORCE \
-    --labels=app=vulnapp-prod \
-    --subnetwork=default
+    --labels=app=vulnapp-test \
+    --subnetwork=default \
+    --no-enable-ip-alias \
+    --zone us-central1-c \
+    --preemptible \
+    --num-nodes=1 \
+    --disk-size=50GB 
+    #  --additional-zones us-central1-b

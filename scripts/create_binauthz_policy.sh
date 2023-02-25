@@ -26,6 +26,11 @@ KEYRING=blog-keyring
 KEY_NAME=cd-blog
 KEY_VERSION=1
 
+
+#Create Artifact Registry Repository where images will be stored
+#gcloud artifacts repositories create ${REPO_NAME} --repository-format=docker \
+#--location=us-central1 --description="Docker repository"
+
 #To ensure everything worked as expected, you can list your attestations and the key that's assigned to that attestor for verification
 #Print the list of attestors, you should now see a key registered:
 
