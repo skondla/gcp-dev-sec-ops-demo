@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: notesserver
-        image: notes-app-image
+        image: us-central1-docker.pkg.dev/absolute-accord-378620/test-repo/cd:9be9549187feae6f29a0a7ce8a7eff47ada8b4e8
         env:
         - name: "PORT"
           value: "3000"
